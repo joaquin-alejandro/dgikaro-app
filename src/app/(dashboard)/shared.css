@@ -1,0 +1,134 @@
+.alumnos-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.alumnos-search {
+    flex: 1;
+    min-width: 200px;
+    padding: var(--space-2) var(--space-3);
+    padding-left: var(--space-8);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-card);
+    outline: none;
+    transition: border-color var(--transition-fast);
+}
+
+.alumnos-search:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-50);
+}
+
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-icon {
+    position: absolute;
+    left: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+.filter-select {
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-card);
+    outline: none;
+    cursor: pointer;
+    color: var(--color-text);
+}
+
+.filter-select:focus {
+    border-color: var(--color-primary);
+}
+
+/* Student row extras */
+.student-name-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-name {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.student-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+.actions-cell {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* Modal grid for forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+.form-grid .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Alert banner inside modals */
+.form-alert {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.form-alert-warning {
+    background: var(--color-warning-light);
+    color: #92400E;
+}
+
+.form-alert-info {
+    background: var(--color-info-light);
+    color: #1D4ED8;
+}
+
+.form-alert-danger {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* Count badge */
+.count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}

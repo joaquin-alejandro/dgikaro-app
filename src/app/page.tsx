@@ -1,66 +1,79 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
+import DashboardLayout from '@/components/layout/DashboardLayout';
+
+export default function DashboardPage() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <DashboardLayout userRole="admin" userName="Administrador">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">Resumen general de la academia</p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: 'var(--color-primary-50)', color: 'var(--color-primary)' }}>
+            🎓
+          </div>
+          <div className="stat-value">0</div>
+          <div className="stat-label">Alumnos Activos</div>
         </div>
-      </main>
-    </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: 'var(--color-success-light)', color: 'var(--color-success)' }}>
+            📝
+          </div>
+          <div className="stat-value">0</div>
+          <div className="stat-label">Inscripciones del Mes</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: 'var(--color-warning-light)', color: 'var(--color-warning)' }}>
+            💰
+          </div>
+          <div className="stat-value">$0</div>
+          <div className="stat-label">Ingresos Hoy</div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon" style={{ background: 'var(--color-info-light)', color: 'var(--color-info)' }}>
+            👥
+          </div>
+          <div className="stat-value">0</div>
+          <div className="stat-label">Grupos Activos</div>
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      <div className="content-grid">
+        {/* Recent Activity */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Actividad Reciente</h3>
+          </div>
+          <div className="empty-state">
+            <div className="empty-icon">📋</div>
+            <div className="empty-title">Sin actividad reciente</div>
+            <p className="text-sm text-muted">Las inscripciones y pagos aparecerán aquí</p>
+          </div>
+        </div>
+
+        {/* Alerts */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Alertas</h3>
+            <span className="badge badge-neutral">0</span>
+          </div>
+          <div className="empty-state">
+            <div className="empty-icon">✅</div>
+            <div className="empty-title">Sin alertas pendientes</div>
+            <p className="text-sm text-muted">Faltas, pagos vencidos y cupos aparecerán aquí</p>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }
