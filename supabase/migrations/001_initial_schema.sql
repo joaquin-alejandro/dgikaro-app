@@ -155,7 +155,7 @@ CREATE INDEX idx_asistencia_alumno ON confirmaciones_asistencia(alumno_id);
 CREATE TABLE IF NOT EXISTS solicitudes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   solicitante_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  tipo TEXT NOT NULL CHECK (tipo IN ('permiso_falta', 'aviso')),
+  tipo TEXT NOT NULL CHECK (tipo IN ('permiso_ausencia', 'aviso', 'otro')),
   descripcion TEXT NOT NULL,
   fecha_referencia DATE NOT NULL,
   estatus TEXT NOT NULL CHECK (estatus IN ('pendiente', 'aprobada', 'rechazada')) DEFAULT 'pendiente',

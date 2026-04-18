@@ -28,7 +28,7 @@ export type BecaTipo = 'beca' | 'descuento';
 
 export type ReembolsoEstatus = 'solicitado' | 'autorizado' | 'rechazado';
 
-export type SolicitudTipo = 'permiso_falta' | 'aviso';
+export type SolicitudTipo = 'permiso_ausencia' | 'aviso' | 'otro';
 
 export type SolicitudEstatus = 'pendiente' | 'aprobada' | 'rechazada';
 
