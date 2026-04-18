@@ -69,6 +69,7 @@ export default function CalendarioPage() {
             fecha: dateStr,
             hora_inicio: formData.hora_inicio,
             hora_fin: formData.hora_fin,
+            cupo_actual: 0,
             estatus: formData.estatus,
         }]);
         setShowModal(false);
