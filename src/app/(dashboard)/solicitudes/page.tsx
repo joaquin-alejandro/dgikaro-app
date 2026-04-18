@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { mockSolicitudes, mockUsers } from '@/lib/data/mock-data';
-import { formatFecha, ROLE_LABELS, STATUS_BADGE, STATUS_LABELS } from '@/lib/utils/business-rules';
+import { formatFecha, STATUS_BADGE, STATUS_LABELS } from '@/lib/utils/business-rules';
 import type { Solicitud, SolicitudTipo, SolicitudEstatus } from '@/lib/types/database';
 import '../shared.css';
 
@@ -15,28 +15,41 @@ const TIPO_LABELS: Record<SolicitudTipo, string> = {
 export default function SolicitudesPage() {
     const [solicitudes, setSolicitudes] = useState<Solicitud[]>(mockSolicitudes);
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ tipo: 'permiso_ausencia' as SolicitudTipo, descripcion: '', fecha_inicio: '', fecha_fin: '' });
+    const [formData, setFormData] = useState({ 
+        tipo: 'permiso_ausencia' as SolicitudTipo, 
+        descripcion: '', 
+        fecha_inicio: '', 
+        fecha_fin: '' 
+    });
     const [formError, setFormError] = useState('');
 
     const getUserName = (id: string) => mockUsers.find(u => u.id === id)?.nombre_completo || '—';
 
     const handleSave = () => {
         if (!formData.descripcion) { setFormError('La descripción es obligatoria.'); return; }
-        if (formData.tipo === 'permiso_ausencia' && (!formData.fecha_inicio || !formData.fecha_fin)) { setFormError('Las fechas son obligatorias para permisos.'); return; }
-        setSolicitudes(prev => [...prev, {
+        if (formData.tipo === 'permiso_ausencia' && (!formData.fecha_inicio || !formData.fecha_fin)) { 
+            setFormError('Las fechas son obligatorias para permisos.'); 
+            return; 
+        }
+        
+        const newSolicitud: Solicitud = {
             id: String(Date.now()),
             solicitante_id: '4', // current user (maestro)
             tipo: formData.tipo,
             descripcion: formData.descripcion,
+            fecha_referencia: formData.fecha_inicio || new Date().toISOString().split('T')[0],
             fecha_inicio: formData.fecha_inicio || null,
             fecha_fin: formData.fecha_fin || null,
-            estatus: 'solicitado',
+            estatus: 'pendiente',
+            resuelta_por: null,
             created_at: new Date().toISOString(),
-        }]);
+        };
+
+        setSolicitudes(prev => [...prev, newSolicitud]);
         setShowModal(false);
     };
 
-    const handleAuthorize = (id: string) => setSolicitudes(prev => prev.map(s => s.id === id ? { ...s, estatus: 'autorizado' as SolicitudEstatus } : s));
+    const handleAuthorize = (id: string) => setSolicitudes(prev => prev.map(s => s.id === id ? { ...s, estatus: 'aprobada' as SolicitudEstatus } : s));
     const handleReject = (id: string) => setSolicitudes(prev => prev.map(s => s.id === id ? { ...s, estatus: 'rechazada' as SolicitudEstatus } : s));
 
     return (
@@ -48,8 +61,8 @@ export default function SolicitudesPage() {
 
             <div className="stats-grid" style={{ marginBottom: 'var(--space-4)' }}>
                 <div className="stat-card"><div className="stat-value">{solicitudes.length}</div><div className="stat-label">Total</div></div>
-                <div className="stat-card"><div className="stat-value" style={{ color: 'var(--color-warning)' }}>{solicitudes.filter(s => s.estatus === 'solicitado').length}</div><div className="stat-label">Pendientes</div></div>
-                <div className="stat-card"><div className="stat-value" style={{ color: 'var(--color-success)' }}>{solicitudes.filter(s => s.estatus === 'autorizado').length}</div><div className="stat-label">Autorizados</div></div>
+                <div className="stat-card"><div className="stat-value" style={{ color: 'var(--color-warning)' }}>{solicitudes.filter(s => s.estatus === 'pendiente').length}</div><div className="stat-label">Pendientes</div></div>
+                <div className="stat-card"><div className="stat-value" style={{ color: 'var(--color-success)' }}>{solicitudes.filter(s => s.estatus === 'aprobada').length}</div><div className="stat-label">Aprobadas</div></div>
             </div>
 
             <div className="table-container">
@@ -67,7 +80,7 @@ export default function SolicitudesPage() {
                                 <td><span className={`badge ${STATUS_BADGE[s.estatus]}`}>{STATUS_LABELS[s.estatus]}</span></td>
                                 <td>
                                     <div className="actions-cell">
-                                        {s.estatus === 'solicitado' && <>
+                                        {s.estatus === 'pendiente' && <>
                                             <button className="btn btn-sm btn-primary" onClick={() => handleAuthorize(s.id)}>✅</button>
                                             <button className="btn btn-sm btn-danger" onClick={() => handleReject(s.id)}>❌</button>
                                         </>}

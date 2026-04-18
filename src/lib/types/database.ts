@@ -206,6 +206,8 @@ export interface Solicitud {
     tipo: SolicitudTipo;
     descripcion: string;
     fecha_referencia: string; // ISO date
+    fecha_inicio?: string | null;
+    fecha_fin?: string | null;
     estatus: SolicitudEstatus;
     resuelta_por: string | null;
     created_at: string;
