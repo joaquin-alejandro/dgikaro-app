@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockAlumnos, mockTutores } from '@/lib/data/mock-data';
+import { useState, useEffect, useMemo } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { calcularEdad, nombreCompleto, formatFecha, STATUS_BADGE, STATUS_LABELS } from '@/lib/utils/business-rules';
-import type { Alumno, AlumnoStatus } from '@/lib/types/database';
+import type { Alumno, AlumnoStatus, Tutor } from '@/lib/types/database';
 import '../shared.css';
 
 export default function AlumnosPage() {
-    const [alumnos, setAlumnos] = useState<Alumno[]>(mockAlumnos);
+    const supabase = createClient();
+    
+    const [alumnos, setAlumnos] = useState<Alumno[]>([]);
+    const [tutores, setTutores] = useState<Tutor[]>([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<AlumnoStatus | 'todos'>('todos');
     const [showModal, setShowModal] = useState(false);
@@ -25,6 +29,38 @@ export default function AlumnosPage() {
         status: 'activo' as AlumnoStatus,
     });
     const [formError, setFormError] = useState('');
+
+    // Fetch data from Supabase
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // Fetch alumnos (including tutor relation data)
+                const { data: alumnosData, error: alumnosError } = await supabase
+                    .from('alumnos')
+                    .select('*, tutor:tutores(*)');
+                
+                if (alumnosError) throw alumnosError;
+
+                // Fetch tutores for the select dropdown
+                const { data: tutoresData, error: tutoresError } = await supabase
+                    .from('tutores')
+                    .select('*');
+                
+                if (tutoresError) throw tutoresError;
+
+                setAlumnos(alumnosData as Alumno[]);
+                setTutores(tutoresData as Tutor[]);
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                alert("Error al cargar los datos desde la base de datos.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [supabase]);
 
     // Filtered students
     const filtered = useMemo(() => {
@@ -68,7 +104,7 @@ export default function AlumnosPage() {
         setShowModal(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         // Validate required fields
         if (!formData.nombre || !formData.apellido_paterno || !formData.fecha_nacimiento) {
             setFormError('Nombre, apellido paterno y fecha de nacimiento son obligatorios.');
@@ -88,56 +124,77 @@ export default function AlumnosPage() {
             return;
         }
 
-        if (editingAlumno) {
-            // Update
-            setAlumnos(prev => prev.map(a =>
-                a.id === editingAlumno.id
-                    ? {
-                        ...a,
-                        nombre: formData.nombre,
-                        apellido_paterno: formData.apellido_paterno,
-                        apellido_materno: formData.apellido_materno || null,
-                        fecha_nacimiento: formData.fecha_nacimiento,
-                        grado_escolar: formData.grado_escolar || null,
-                        condicion_medica: formData.condicion_medica || null,
-                        tutor_id: formData.tutor_id || null,
-                        status: formData.status,
-                    }
-                    : a
-            ));
-        } else {
-            // Create
-            const newAlumno: Alumno = {
-                id: String(Date.now()),
-                nombre: formData.nombre,
-                apellido_paterno: formData.apellido_paterno,
-                apellido_materno: formData.apellido_materno || null,
-                fecha_nacimiento: formData.fecha_nacimiento,
-                grado_escolar: formData.grado_escolar || null,
-                condicion_medica: formData.condicion_medica || null,
-                tutor_id: formData.tutor_id || null,
-                status: formData.status,
-                created_at: new Date().toISOString(),
-            };
-            setAlumnos(prev => [...prev, newAlumno]);
-        }
+        const dbPayload = {
+            nombre: formData.nombre,
+            apellido_paterno: formData.apellido_paterno,
+            apellido_materno: formData.apellido_materno || null,
+            fecha_nacimiento: formData.fecha_nacimiento,
+            grado_escolar: formData.grado_escolar || null,
+            condicion_medica: formData.condicion_medica || null,
+            tutor_id: formData.tutor_id || null,
+            status: formData.status,
+        };
 
-        setShowModal(false);
+        try {
+            if (editingAlumno) {
+                // Update
+                const { data, error } = await supabase
+                    .from('alumnos')
+                    .update(dbPayload)
+                    .eq('id', editingAlumno.id)
+                    .select('*, tutor:tutores(*)')
+                    .single();
+
+                if (error) throw error;
+
+                setAlumnos(prev => prev.map(a => a.id === editingAlumno.id ? (data as Alumno) : a));
+            } else {
+                // Create
+                const { data, error } = await supabase
+                    .from('alumnos')
+                    .insert([dbPayload])
+                    .select('*, tutor:tutores(*)')
+                    .single();
+
+                if (error) throw error;
+
+                setAlumnos(prev => [data as Alumno, ...prev]);
+            }
+            setShowModal(false);
+        } catch (error: any) {
+            console.error("Error saving data:", error);
+            setFormError(`Error al guardar: ${error.message || 'Error desconocido'}`);
+        }
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (confirm('¿Estás seguro de eliminar este alumno?')) {
-            setAlumnos(prev => prev.filter(a => a.id !== id));
+            try {
+                const { error } = await supabase
+                    .from('alumnos')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+                
+                setAlumnos(prev => prev.filter(a => a.id !== id));
+            } catch (error: any) {
+                console.error("Error deleting data:", error);
+                alert(`Error al eliminar: ${error.message}`);
+            }
         }
     };
 
-    const getTutorName = (tutorId: string | null) => {
-        if (!tutorId) return '—';
-        const tutor = mockTutores.find(t => t.id === tutorId);
-        return tutor ? tutor.nombre_padre : '—';
+    const getTutorName = (alumno: Alumno) => {
+        if (!alumno.tutor_id || !alumno.tutor) return '—';
+        return alumno.tutor.nombre_padre;
     };
 
     const countByStatus = (status: AlumnoStatus) => alumnos.filter(a => a.status === status).length;
+
+    if (loading) {
+        return <div className="loading-state">Cargando datos desde Supabase...</div>;
+    }
 
     return (
         <>
@@ -145,7 +202,7 @@ export default function AlumnosPage() {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Alumnos</h1>
-                    <p className="page-subtitle">Gestión de alumnos registrados</p>
+                    <p className="page-subtitle">Gestión de alumnos en Supabase</p>
                 </div>
                 <button className="btn btn-primary" onClick={openCreate}>
                     + Nuevo Alumno
@@ -234,7 +291,7 @@ export default function AlumnosPage() {
                                         </div>
                                     </td>
                                     <td>{calcularEdad(alumno.fecha_nacimiento)} años</td>
-                                    <td>{getTutorName(alumno.tutor_id)}</td>
+                                    <td>{getTutorName(alumno)}</td>
                                     <td>{alumno.grado_escolar || '—'}</td>
                                     <td>
                                         <span className={`badge ${STATUS_BADGE[alumno.status]}`}>
@@ -351,7 +408,7 @@ export default function AlumnosPage() {
                                     onChange={e => setFormData(p => ({ ...p, tutor_id: e.target.value }))}
                                 >
                                     <option value="">Sin tutor</option>
-                                    {mockTutores.map(t => (
+                                    {tutores.map(t => (
                                         <option key={t.id} value={t.id}>
                                             {t.nombre_padre} {t.nombre_madre ? `/ ${t.nombre_madre}` : ''}
                                         </option>
