@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import './login.css';
 
 export default function LoginPage() {
+    const supabase = createClient();
+    const router = useRouter();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -15,16 +20,28 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // TODO: Integrate with Supabase Auth
-            // For now, demo login — will be replaced when Supabase is configured
-            if (email === 'admin@dgikaro.com' && password === 'admin123') {
-                window.location.href = '/';
-            } else {
-                setError('Credenciales inválidas. Verifica tu email y contraseña.');
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (signInError) {
+                // If it's a "Invalid login credentials", give a clear message
+                if (signInError.message.includes('Invalid login credentials')) {
+                    setError('Correo o contraseña incorrectos.');
+                } else {
+                    setError(signInError.message);
+                }
+                setLoading(false);
+                return;
             }
-        } catch {
-            setError('Error al iniciar sesión. Intenta de nuevo.');
-        } finally {
+
+            // Success! The middleware will handle the redirection automatically,
+            // but we can also push to /alumnos for a smooth transition.
+            router.push('/alumnos');
+            router.refresh();
+        } catch (err: any) {
+            setError('Error de conexión. Intenta de nuevo.');
             setLoading(false);
         }
     };
