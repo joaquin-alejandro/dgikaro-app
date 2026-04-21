@@ -2,11 +2,17 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-    // Skip auth if Supabase is not configured yet (development mode)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-    if (!supabaseUrl || supabaseUrl === 'your_supabase_url_here' || !supabaseKey || supabaseKey === 'your_supabase_anon_key_here') {
+    // Si no hay variables, redirigimos a login o tiramos un error, NUNCA dejamos pasar
+    if (!supabaseUrl || !supabaseKey) {
+        console.error("FALTAN VARIABLES DE SUPABASE EN EL ENTORNO (Dokploy)");
+        if (request.nextUrl.pathname !== '/login') {
+            const url = request.nextUrl.clone();
+            url.pathname = '/login';
+            return NextResponse.redirect(url);
+        }
         return NextResponse.next();
     }
 
@@ -37,12 +43,10 @@ export async function middleware(request: NextRequest) {
         }
     );
 
-    // Refresh session
     const {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Redirect unauthenticated users to login
     const isAuthPage = request.nextUrl.pathname === '/login';
 
     if (!user && !isAuthPage) {
@@ -51,10 +55,16 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    // Redirect authenticated users away from login page
     if (user && isAuthPage) {
         const url = request.nextUrl.clone();
-        url.pathname = '/';
+        url.pathname = '/alumnos'; // Redirecting to /alumnos instead of /
+        return NextResponse.redirect(url);
+    }
+
+    // Proteger el acceso a la raíz '/'
+    if (user && request.nextUrl.pathname === '/') {
+        const url = request.nextUrl.clone();
+        url.pathname = '/alumnos';
         return NextResponse.redirect(url);
     }
 
@@ -63,13 +73,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - public files (images, etc.)
-         */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 };
