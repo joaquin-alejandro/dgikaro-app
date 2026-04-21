@@ -8,6 +8,8 @@ import { calcularEdad, nombreCompleto, formatFecha, STATUS_BADGE, STATUS_LABELS 
 import type { Alumno, Tutor } from '@/lib/types/database';
 import '../../shared.css';
 
+export const dynamic = 'force-dynamic';
+
 export default function AlumnoProfilePage() {
     const supabase = createClient();
     const router = useRouter();

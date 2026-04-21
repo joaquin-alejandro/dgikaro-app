@@ -6,6 +6,8 @@ import { formatFecha } from '@/lib/utils/business-rules';
 import type { Tutor, Alumno } from '@/lib/types/database';
 import '../shared.css';
 
+export const dynamic = 'force-dynamic';
+
 export default function TutoresPage() {
     const supabase = createClient();
 

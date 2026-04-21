@@ -7,6 +7,8 @@ import type { Alumno, AlumnoStatus, Tutor } from '@/lib/types/database';
 import Link from 'next/link';
 import '../shared.css';
 
+export const dynamic = 'force-dynamic';
+
 export default function AlumnosPage() {
     const supabase = createClient();
     
